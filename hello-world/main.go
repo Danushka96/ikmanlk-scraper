@@ -5,10 +5,16 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/gocolly/colly"
 	"log"
+	"time"
 )
 
 type IkmanAd struct {
-	title, price, link, image string
+	ID        string    `bson:"_id, omitempty"`
+	Title     string    `bson:"title"`
+	Price     string    `bson:"price"`
+	Link      string    `bson:"link"`
+	Image     string    `bson:"image"`
+	CreatedAt time.Time `bson:"created_at"`
 }
 
 func getAds() {
@@ -38,12 +44,20 @@ func getAds() {
 		var image = e.ChildAttr("img", "src")
 		var price = e.ChildText(".price--3SnqI")
 		var ad = IkmanAd{
-			title: title,
-			link:  link,
-			image: image,
-			price: price,
+			ID:        link,
+			Title:     title,
+			Link:      "https://ikman.lk" + link,
+			Image:     image,
+			Price:     price,
+			CreatedAt: time.Now(),
 		}
-		ikmanAds = append(ikmanAds, ad)
+		if !ExistAd(ad) {
+			//SendMessage(ad)
+			_, err := SaveAd(ad)
+			if err != nil {
+				return
+			}
+		}
 	})
 	print(ikmanAds)
 
@@ -53,11 +67,9 @@ func getAds() {
 	}
 }
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{
-		Body:       "Hello World",
-		StatusCode: 200,
-	}, nil
+func handler(_ events.CloudWatchEvent) error {
+	getAds()
+	return nil
 }
 
 func main() {
