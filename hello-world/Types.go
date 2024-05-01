@@ -24,6 +24,11 @@ type Component struct {
 }
 
 type Parameter struct {
-	Type string `json:"type"`
-	Text string `json:"text"`
+	Type  string `json:"type"`
+	Text  any    `json:"text"`
+	Image any    `json:"image"`
+}
+
+type ImageParameterType struct {
+	Link string `json:"link"`
 }

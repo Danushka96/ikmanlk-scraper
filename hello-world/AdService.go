@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -16,7 +17,10 @@ func SaveAd(ad IkmanAd) (*mongo.InsertOneResult, error) {
 }
 
 func ExistAd(ad IkmanAd) bool {
-	var currentAd IkmanAd
-	findErr := adCollection.FindOne(context.TODO(), ad.ID).Decode(currentAd)
-	return findErr == nil
+	filter := bson.D{{"_id", ad.ID}}
+	count, countError := adCollection.CountDocuments(context.TODO(), filter)
+	if countError != nil {
+		panic(countError)
+	}
+	return count > 0
 }

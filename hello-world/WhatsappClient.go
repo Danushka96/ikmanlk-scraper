@@ -22,6 +22,10 @@ func SendMessage(ad IkmanAd) {
                 "code": "en"
             },
             "components": [
+				{
+					"type": "header",
+                    "parameters": []
+				},
                 {
                     "type": "body",
                     "parameters": []
@@ -36,35 +40,40 @@ func SendMessage(ad IkmanAd) {
 		return
 	}
 
-	var title = Parameter{Type: "text", Text: ad.Title}
-	var price = Parameter{Type: "text", Text: ad.Price}
-	var link = Parameter{Type: "text", Text: ad.Link}
-	message.Template.Components[0].Parameters = append(message.Template.Components[0].Parameters, title, price, link)
+	var title = Parameter{Type: "text", Text: ad.Title, Image: nil}
+	var price = Parameter{Type: "text", Text: ad.Price, Image: nil}
+	var link = Parameter{Type: "text", Text: ad.Link, Image: nil}
+	var image = Parameter{Type: "image", Image: ImageParameterType{Link: ad.Image}, Text: nil}
+	message.Template.Components[1].Parameters = append(message.Template.Components[1].Parameters, title, price, link)
+	message.Template.Components[0].Parameters = append(message.Template.Components[0].Parameters, image)
 
-	message.To = "+94742400690"
+	phoneNumbers := [2]string{"+94742400690", "+94768038766"}
+	for _, phoneNumber := range phoneNumbers {
+		message.To = phoneNumber
 
-	// Marshal the map into JSON format
-	requestBodyBytes, err := json.Marshal(message)
-	if err != nil {
-		fmt.Println("Error marshaling request body:", err)
-		return
+		// Marshal the map into JSON format
+		requestBodyBytes, err := json.Marshal(message)
+		if err != nil {
+			fmt.Println("Error marshaling request body:", err)
+			return
+		}
+
+		req, err := http.NewRequest("POST", "https://graph.facebook.com/v17.0/114095055017089/messages",
+			bytes.NewBuffer(requestBodyBytes))
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+
+		// Create an HTTP client
+		client := &http.Client{}
+
+		// Send the request
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Println("Error sending request:", err)
+			return
+		}
+		resp.Body.Close()
+		fmt.Println("Response Status:", resp.Status)
 	}
-
-	req, err := http.NewRequest("POST", "https://graph.facebook.com/v17.0/114095055017089/messages",
-		bytes.NewBuffer(requestBodyBytes))
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	// Create an HTTP client
-	client := &http.Client{}
-
-	// Send the request
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return
-	}
-	defer resp.Body.Close()
-	fmt.Println("Response Status:", resp.Status)
 }

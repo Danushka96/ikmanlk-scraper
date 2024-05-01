@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/gocolly/colly"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -21,6 +23,7 @@ func getAds() {
 	var ikmanAds []IkmanAd
 
 	c := colly.NewCollector()
+	c.SetRequestTimeout(10 * time.Second)
 
 	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting: ", r.URL)
@@ -42,6 +45,8 @@ func getAds() {
 		var link = e.ChildAttr("a", "href")
 		var title = e.ChildAttr("a", "title")
 		var image = e.ChildAttr("img", "src")
+		image = strings.Replace(image, "142", "800", 1)
+		image = strings.Replace(image, "107", "500", 1)
 		var price = e.ChildText(".price--3SnqI")
 		var ad = IkmanAd{
 			ID:        link,
@@ -52,7 +57,7 @@ func getAds() {
 			CreatedAt: time.Now(),
 		}
 		if !ExistAd(ad) {
-			//SendMessage(ad)
+			SendMessage(ad)
 			_, err := SaveAd(ad)
 			if err != nil {
 				return
@@ -73,6 +78,6 @@ func handler(_ events.CloudWatchEvent) error {
 }
 
 func main() {
-	//lambda.Start(handler)
-	getAds()
+	lambda.Start(handler)
+	//getAds()
 }
