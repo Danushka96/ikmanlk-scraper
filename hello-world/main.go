@@ -66,7 +66,7 @@ func getAds() {
 	})
 	print(ikmanAds)
 
-	err := c.Visit("https://ikman.lk/en/ads/colombo/house-rentals?money.price.maximum=30000")
+	err := c.Visit("https://ikman.lk/en/ads/colombo/house-rentals?money.price.maximum=45000")
 	if err != nil {
 		return
 	}
